@@ -1,16 +1,45 @@
 const express= require('express')
 const bodyParser= require('body-parser')
 const cors = require('cors')
-
+const mongoose = require('mongoose')
 const app= express()
 
-const data={
-    name: 'siddharth', srn: 'PES1UG19CS482'
-}
+const signin= require('./controllers/signin')
+
+mongoose.set('useUnifiedTopology', true);
+mongoose.set('useNewUrlParser', true);
+
+
+mongoose.connect('mongodb://localhost/foodiedb')
+.then(res=> console.log(`successuflly connected: ${res}`))
+.catch(err=>console.log(`error connecting to db : ${err}`));
+
+
+const userinfo=mongoose.Schema({
+    username: String,
+    password: String
+})
+
+const Userinfo = mongoose.model('userinfo',userinfo)
 
 app.use(cors())
 app.use(bodyParser.json())
+app.use(express.json())
+app.use(express.urlencoded({ extended: true })); // when data is sent in urlencoded format
 
+// /**
+
+function deletee(){
+    // foodiedb.userinfo.remove({})
+    // mongoose.connection.dropCollection()
+    Userinfo.deleteMany({},(err,result)=>{
+        if(err) console.log(`Unable to delete ${moviename} ${err}`);
+        else console.log(` Successfully delted: ${result}`);
+    })
+}
+// deletee()
+
+// */
 app.get('/',(req,res)=>{
     res.json('Home')
 })
@@ -20,11 +49,49 @@ app.get('/about',(req,res)=>{
 })
 
 app.get('/signin',(req,res)=>{
+
     res.json("Signin")
 })
 
-app.get('/register',(req,res)=>{
-    res.json("Register")
+// app.post('/register',(req,res)=>{
+//     res.json("hello")
+// })
+
+// mongoose.deleteModel(Userinfo)
+
+app.post('/register',(req,res)=>{
+
+    console.log(`req: ${req.body.username,req.body.password}`)
+    let finalres=0
+    // console.log(req.body.username,req.body.password)
+    try{
+        Userinfo.insertMany({
+            username: req.body.username,
+            password: req.body.password
+
+        },(err)=>{
+            if(err){
+                console.log(`error occurred while registering a user: ${err}`)
+                return res.json("0")//registeration failed
+            }
+            else{
+                finalres=1;
+                console.log(finalres);
+                console.log("Registeration Successful"+`${finalres}`)
+                return res.send(req.body)
+                return res.json("1")
+            }
+        })
+    }catch(err){
+        console.log(`Try error occurred while registering a user: ${err}`) ;
+        return res.json("0")//registeration failed
+    }
+    // finally{
+    //     if(finalres===1) res.send("1");
+    //     else res.send("0")
+    // }
+    console.log(`finalres ${finalres}`)
+
 })
 
 app.post('/signin',(req,res)=>{
@@ -34,12 +101,35 @@ app.post('/signin',(req,res)=>{
     res.json("User not found")
 })
 
+app.get('*',(req,res)=>{
+    res.status(404).send("ERROR 404 Not Found")
+})
 
 const port= process.env.PORT || 3000
 
 app.listen(port,()=>{
     console.log("App is listening on port "+ port)
 })
-/*
 
-*/
+
+// async function RegisterUser(req){
+    // let finalres=0
+    // console.log(req.body.username,req.body.password)
+    // try{
+    //     await Userinfo.insertMany({
+    //         username: req.body.username,
+    //         password: req.body.password
+
+    //     },(err)=>{
+    //         if(err) console.log(`error occurred while registering a user: ${err}`)
+    //         else{ finalres=1; console.log(finalres) }
+    //         // return res.status(404).json("0")//registeration failed
+    //     })
+    //     console.log("Registeration Successful")
+    // }catch(err){
+    //     console.log(`Try error occurred while registering a user: ${err}`) ;
+    //     // return res.status(404).json("0")//registeration failed
+    // }
+    // console.log(`finalres ${finalres}`)
+    // return finalres;
+// }
