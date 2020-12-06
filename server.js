@@ -4,7 +4,6 @@ const cors = require('cors')
 const mongoose = require('mongoose')
 const app= express()
 
-const signin= require('./controllers/signin')
 
 mongoose.set('useUnifiedTopology', true);
 mongoose.set('useNewUrlParser', true);
@@ -37,33 +36,13 @@ function deletee(){
         else console.log(` Successfully delted: ${result}`);
     })
 }
-// deletee()
+// deletee() //________________________________________________________________
 
 // */
-app.get('/',(req,res)=>{
-    res.json('Home')
-})
 
-app.get('/about',(req,res)=>{
-    res.json('about')
-})
-
-app.get('/signin',(req,res)=>{
-
-    res.json("Signin")
-})
-
-// app.post('/register',(req,res)=>{
-//     res.json("hello")
-// })
-
-// mongoose.deleteModel(Userinfo)
 
 app.post('/register',(req,res)=>{
-
-    console.log(`req: ${req.body.username,req.body.password}`)
     let finalres=0
-    // console.log(req.body.username,req.body.password)
     try{
         Userinfo.insertMany({
             username: req.body.username,
@@ -78,7 +57,7 @@ app.post('/register',(req,res)=>{
                 finalres=1;
                 console.log(finalres);
                 console.log("Registeration Successful"+`${finalres}`)
-                return res.send(req.body)
+                // return res.send(req.body)
                 return res.json("1")
             }
         })
@@ -86,20 +65,54 @@ app.post('/register',(req,res)=>{
         console.log(`Try error occurred while registering a user: ${err}`) ;
         return res.json("0")//registeration failed
     }
-    // finally{
-    //     if(finalres===1) res.send("1");
-    //     else res.send("0")
-    // }
     console.log(`finalres ${finalres}`)
-
 })
 
 app.post('/signin',(req,res)=>{
-    if(req.username==='sid'){
-        return    res.json("Signin approved")
-    }
-    res.json("User not found")
+    Userinfo.findOne({username: req.body.username, password: req.body.password },(err,result)=>{
+        if(err){
+            console.log(`Error while finding userinfo in db ${err}`)
+            res.json('0')
+        }else{
+            console.log(`${result}`)
+            if(result!==null)
+                res.json('1')
+            else res.json('0')
+            // res.json(`userinfo found in db `)
+        }
+    })
 })
+
+let foods=[
+    food1= {
+        name: 'pizza',
+        price: 100,
+        stars: 3.5/5,
+        place: 'Dwarka Nagar, Banglore',
+        contactno: 948569712,
+    },
+    food2={
+        name: 'North Indian Biryani',
+        price: 100,
+        stars: 3.5/5,
+        place: 'Dwarka Nagar2, Banglore',
+        contactno: 948569712,
+    },
+    food3= {
+        name: 'Chinese schezwan fried rice',
+        price: 100,
+        stars: 3.5/5,
+        place: 'Dwarka Nagar3, Banglore',
+        contactno: 948569712,
+    }
+]
+
+
+app.get('/home/buy',(req,res)=>{
+    // foods=0
+    res.json(foods)
+})
+
 
 app.get('*',(req,res)=>{
     res.status(404).send("ERROR 404 Not Found")
@@ -110,26 +123,3 @@ const port= process.env.PORT || 3000
 app.listen(port,()=>{
     console.log("App is listening on port "+ port)
 })
-
-
-// async function RegisterUser(req){
-    // let finalres=0
-    // console.log(req.body.username,req.body.password)
-    // try{
-    //     await Userinfo.insertMany({
-    //         username: req.body.username,
-    //         password: req.body.password
-
-    //     },(err)=>{
-    //         if(err) console.log(`error occurred while registering a user: ${err}`)
-    //         else{ finalres=1; console.log(finalres) }
-    //         // return res.status(404).json("0")//registeration failed
-    //     })
-    //     console.log("Registeration Successful")
-    // }catch(err){
-    //     console.log(`Try error occurred while registering a user: ${err}`) ;
-    //     // return res.status(404).json("0")//registeration failed
-    // }
-    // console.log(`finalres ${finalres}`)
-    // return finalres;
-// }
