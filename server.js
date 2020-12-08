@@ -23,9 +23,8 @@ const foodList=mongoose.Schema({
         username: String,
         name: String,
         price: Number,
-        rating: Number,
         place: String,
-        contactno: Number
+        contactno: Number,
 })
 
 const Userinfo = mongoose.model('userinfo',userinfo)
@@ -35,18 +34,23 @@ app.use(cors())
 app.use(bodyParser.json())
 app.use(express.json())
 app.use(express.urlencoded({ extended: true })); // when data is sent in urlencoded format
-
+// app.use(express.static(__dirname+'./public/'))
 // /**
 
-function deletee(){
-    // foodiedb.userinfo.remove({})
-    // mongoose.connection.dropCollection()
+function deleteeUserinfo(){
     Userinfo.deleteMany({},(err,result)=>{
         if(err) console.log(`Unable to delete ${moviename} ${err}`);
         else console.log(` Successfully delted: ${result}`);
     })
 }
-// deletee() //________________________________________________________________
+// deleteeUserinfo() //________________________________________________________________
+function deleteeFoodstuff(){
+    Foodstuff.deleteMany({},(err,result)=>{
+        if(err) console.log(`Unable to delete ${moviename} ${err}`);
+        else console.log(` Successfully delted: ${result}`);
+    })
+}
+// deleteeFoodstuff() //________________________________________________________________
 
 // */
 
@@ -101,46 +105,66 @@ app.post('/signin',(req,res)=>{
 
 let foods=[
     food1= {
-        id: 1,
+        username: 'sid',
         name: 'pizza',
         price: 100,
-        rating: 3.5/5,
+        rating: 3.5,
         place: 'Dwarka Nagar, Banglore',
-        contactno: 948569712,
+        contactno: 948569712
     },
     food2={
-        id: 2,
+        username: 'sid',
         name: 'North Indian Biryani',
         price: 100,
-        rating: 3.5/5,
+        rating: 3.0,
         place: 'Dwarka Nagar2, Banglore',
-        contactno: 948569712,
+        contactno: 948569712
     },
     food3= {
-        id: 3,
+        username: 'sid',
         name: 'Chinese schezwan fried rice',
         price: 100,
-        rating: 3.5/5,
+        rating: 3.5,
         place: 'Dwarka Nagar3, Banglore',
-        contactno: 948569712,
+        contactno: 948569712
+    },
+    food4={
+        username:'sid',
+        name: 'Gobi Manchuri',
+        price: 50,
+        rating: 4.5,
+        place: 'Ashok Nagar',
+        contactno: 9478219354
     }
 ]
 
 
 app.get('/home/buy',(req,res)=>{
     // foods=0
-
-    res.send(foods)
+    Foodstuff
+    .find()
+    .or({})
+    .then(result=>{
+        console.log(result)
+        res.send(result)
+    })
+    .catch(err=> {
+        console.log(`err while buying food ${err} `)
+        res.send("Error while fetching food items")
+    })
+    // res.send(foods)
 })
 
-app.get('./home/sell',(req,res)=>{
+app.post('/home/sell/insert/food',(req,res)=>{
+    console.log(req)
+    // console.log("hi")
+    // res.send("hello")
     Foodstuff.insertMany({
         username:req.body.username,
         name: req.body.name,
         price: req.body.price,
-        rating: req.body.rating,
         place: req.body.place,
-        contactno: req.body.contactno
+        contactno: req.body.contactno,
     },(err,result)=>{
         if(err) res.send("0")
         else{
@@ -156,45 +180,43 @@ async function findFoodsbySeller(username){
     return foodbyseller;
 }
 
-app.get('/home/sell/:username',(req,res)=>{
+app.post('/home/sell/:username',(req,res)=>{
     console.log("username:  "+req.params.username)
-    // sendList=  findFoodsbySeller(req.params.username)
-    // Foodstuff.findMany({'username':req.params.username},(err,result)=>{
-    //     if(err) res.status(404).send("0")
-    //     else{
-    //         res.send(result)
-    //     }
-    // })
     Foodstuff
     .find()
     .or([{username:req.params.username}])
     .then(result=>{
         console.log(result);
         res.send(result)
-    })  
+    })
     .catch(err=>{
         console.log(`err occured ${err}`)
         res.status(404).send("0")
     })
-
-    // foodiedb.Foodstuff
-
-
-    // let foodbyseller= Foodstuff.find({username : req.params.username})
-    // console.log(foodbyseller)
-    // res.send(foodbyseller)
 })
 
-// temperoary
+app.post('/home/sell/delete/:username/:foodid',(req,res)=>{
+    console.log(`delte post req sent`)
+    Foodstuff.findByIdAndDelete(req.params.foodid,(err,result)=>{
+        if(err){
+            console.log(`err deleting foodstuff in server ${err}`)
+            res.send('0')
+        }
+            else{
+            console.log(`Food Stuff deleted ${result}`)
+            res.send('1')
+        }
+    })
+})
+// temporary
 function InsertFoodstuff(){
     try{
 
         Foodstuff.insertMany({
-            username:'sid',
-            name: 'Gobi Manchuri',
-            price: '50',
-            rating: 4.5,
-            place: 'Ashok Nagar',
+            username:'sid@gmail.com',
+            name: 'Veg Biryani',
+            price: '250',
+            place: 'PB road vijay colony',
             contactno: 9478219354
         })
     }catch(err){
@@ -214,3 +236,6 @@ const port= process.env.PORT || 3000
 app.listen(port,()=>{
     console.log("App is listening on port "+ port)
 })
+
+
+
