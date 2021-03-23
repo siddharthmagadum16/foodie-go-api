@@ -135,7 +135,7 @@ function InsertFoodstuff(){
             price: '250',
             place: 'PB road vijay colony',
             contactno: 9478219354
-        }) 
+        })
     }catch(err){
         console.log(err)
     }

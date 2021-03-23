@@ -6,6 +6,23 @@ const foodList=mongoose.Schema({
     price: Number,
     place: String,
     contactno: Number,
+    image: Array
+
 })
 
 module.exports= mongoose.model("Foodstuff",foodList);
+
+
+/*
+
+img:{
+        fieldname : String,
+        originalname : String,
+        encoding : String,
+        mimetype : String,
+        destination : String,
+        path : String,
+        size : Number
+}
+
+*/
