@@ -6,7 +6,7 @@ const foodList=mongoose.Schema({
     price: Number,
     place: String,
     contactno: Number,
-    image: Array
+    image: Array  // try changing to object if possible
 
 })
 

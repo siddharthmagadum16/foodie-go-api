@@ -2,6 +2,7 @@ const express= require('express')
 const bodyParser= require('body-parser')
 const mongoose = require('mongoose')
 const home= require('express').Router();
+const {performance} = require('perf_hooks');
 
 const fs= require('fs')
 const Path = require('path')
@@ -9,6 +10,7 @@ require('dotenv/config')
 const multer = require('multer')
 
 const Foodstuff= require('../models/foodstuffs');
+const { decode } = require('punycode');
 
 
 home.use(express.json())
@@ -79,33 +81,69 @@ home.post('/sell/insert/food',upload.single('image'),(req,res)=>{
 home.post('/sell/insert/food/image',upload.single('image'),(req,res)=>{
     console.log(req.file.destination) // image url
 
-    let foodimage= req.file ;
-    console.log(req.file.fieldname)
-    let path = Path.join(__dirname + '/uploads/ ' + req.file.filename )
-
-    console.log(foodimage)
+    console.log(req.file)
+    // let path = Path.join(__dirname + '/uploads/ ' + req.file. )
+    // var encodedImage = new Buffer(data, 'binary').toString('base64');
+    let file =fs.readFileSync(req.file.path);
+    console.log("_________")
+    let encodedImage = Buffer.from(file).toString('base64')
+    console.log(encodedImage.slice(0,9))
     var obj = {
-        name: "veg pulao",
+        name: "aloo paneer",
         image:{
-            data: fs.readFileSync(path),
-            contentType: 'image/png'
+            data: encodedImage,
+            contentType: req.file.mimetype
         }
     }
     // fs.readFile(req.file.path,)
     Foodstuff.insertMany(obj,(err,result)=>{
-        if(err) res.send("0")
+        if(err)
+            res.send("0");
         else {
             console.log(result)
             res.send("1")
         }
     })
 
+
+    // to remove the uploaded file which was stored in file folder
+    // fs.readdir(req.file.path, (err, files) => {
+    //     if (err) console.log(err);
+    //     // for (const file of files) {
+    //         fs.unlink(req.file.path, err => {
+    //             if (err) console.log(err);
+    //         })
+    //         // }
+    // })
+
+})
+
+home.get('/getimage',(req,res)=>{
+    let t0= performance.now()
+    Foodstuff.findById("605c9f2b3344d3343041bbe0",(err,img)=>{
+        // console.log(img.id)
+        let tmp = img.image.contentType
+        imageinfo = img
+        // console.log(imageinfo.image) // never log .image
+        console.log(imageinfo.image[0].data.slice(0,9))
+        console.log(tmp)
+        let final;
+        // let final = `<img src={data:${imageinfo.image[0].contentType};base64,${imageinfo.image[0].data}} alt="imagealt" />`
+        // res.send(final.json())
+        // res.json(final)
+        // console.log(final)
+        final=[imageinfo.image[0].contentType,imageinfo.image[0].data]
+        res.json(imageinfo.image[0].data)
+    })
+    let t1= performance.now()
+    console.log("getimage backend time: ")
+    console.log( t1-t0)
 })
 
 
 home.post('/sell/:username',(req,res)=>{
     console.log("username:  "+req.params.username)
-    Foodstuff
+    Foodstuff 
     .find()
     .or([{username:req.params.username}])
     .then(result=>{
@@ -170,6 +208,21 @@ image: {
 }
 
 
+ Foodstuff.find({name: "siddharth"},(err,result)=>{
+        if(err) console.log(err)
+        console.log(result)
+        // let decodedImage = new Buffer(encodedImage, 'base64').toString('binary')
+        let decodedImage=  Buffer.from(result[0].image[0].toString('binary'))
+        upload.single(decodedImage)
+        console.log(decodedImage)
+        try{
+            res.send(decodedImage)
+        }catch(e){
+            console.log(e)
+            res.send("0")
+        }
+        // let encodedImage = Buffer.from(file.toString('base64'))
 
+    })
 
 */
