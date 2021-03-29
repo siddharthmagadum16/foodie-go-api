@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const foodList=mongoose.Schema({
     username: String,
-    name: String,
+    foodname: String,
     price: Number,
     place: String,
     contactno: Number,
@@ -15,7 +15,7 @@ module.exports= mongoose.model("Foodstuff",foodList);
 
 /*
 
-img:{
+img:{ 
         fieldname : String,
         originalname : String,
         encoding : String,

@@ -50,40 +50,51 @@ home.get('/buy',(req,res)=>{
     // res.send(foods)
 })
 
+async function insertFoodDocument(body,File,encodedImage){
+    try{
+        Foodstuff.insertMany({
+            username:body.username,
+            foodname: body.foodname,
+            price: parseInt(body.price),
+            place: body.place,
+            contactno: parseInt(body.contactno),
+            image:{
+                data: encodedImage,
+                contentType: File.mimetype
+            }
+        })
+        return 1
+    }catch(err){
+        console.log(err)
+        return 0
+    }
+}
 
 home.post('/sell/insert/food',upload.single('image'),(req,res)=>{
-    // console.log(req.body)
-    // // console.log('REQ.BODY '+ req.body.img)
-    // console.log(__dirname +"<-dirname");
-    // let path= Path.join(__dirname + '/uploads/' + req.file.filename)
+    console.log(req.body)
 
-    Foodstuff.insertMany({
-        username:req.body.username,
-        name: req.body.name,
-        price: req.body.price,
-        place: req.body.place,
-        contactno: req.body.contactno,
-        // img: {
-        //     data: fs.readFileSync(path),
-        //     contentType: 'image/png'
-        // }
-    },(err,result)=>{
-        if(err) res.send("0")
-        else{
-            console.log(result)
-            res.send("1")
-        }
+
+    let file =fs.readFileSync(req.file.path);
+    console.log("_________ " +req.body.username)
+    let encodedImage = Buffer.from(file).toString('base64')
+    console.log(encodedImage.slice(0,9))
+
+    if(insertFoodDocument(req.body,req.file,encodedImage)) res.send('1')
+    else res.send('0');
+    fs.readdir(req.file.path, (err, files) => {
+        if (err) console.log(err);
+            fs.unlink(req.file.path, err => {
+                if (err) console.log(err);
+            })
     })
+
 })
 
 
 
 home.post('/sell/insert/food/image',upload.single('image'),(req,res)=>{
-    console.log(req.file.destination) // image url
 
     console.log(req.file)
-    // let path = Path.join(__dirname + '/uploads/ ' + req.file. )
-    // var encodedImage = new Buffer(data, 'binary').toString('base64');
     let file =fs.readFileSync(req.file.path);
     console.log("_________")
     let encodedImage = Buffer.from(file).toString('base64')
@@ -107,20 +118,18 @@ home.post('/sell/insert/food/image',upload.single('image'),(req,res)=>{
 
 
     // to remove the uploaded file which was stored in file folder
-    // fs.readdir(req.file.path, (err, files) => {
-    //     if (err) console.log(err);
-    //     // for (const file of files) {
-    //         fs.unlink(req.file.path, err => {
-    //             if (err) console.log(err);
-    //         })
-    //         // }
-    // })
+    fs.readdir(req.file.path, (err, files) => {
+        if (err) console.log(err);
+            fs.unlink(req.file.path, err => {
+                if (err) console.log(err);
+            })
+    })
 
 })
 
 home.get('/getimage',(req,res)=>{
     let t0= performance.now()
-    Foodstuff.findById("605c9f2b3344d3343041bbe0",(err,img)=>{
+    Foodstuff.findById("605ebb278433147b8c5d5be5",(err,img)=>{
         // console.log(img.id)
         let tmp = img.image.contentType
         imageinfo = img
@@ -142,12 +151,13 @@ home.get('/getimage',(req,res)=>{
 
 
 home.post('/sell/:username',(req,res)=>{
+    console.log('______________________________________')
     console.log("username:  "+req.params.username)
-    Foodstuff 
+    Foodstuff
     .find()
     .or([{username:req.params.username}])
     .then(result=>{
-        console.log(result);
+        // console.log(result);
         res.send(result)
     })
     .catch(err=>{
@@ -165,7 +175,7 @@ home.post('/sell/delete/:username/:foodid',(req,res)=>{
             res.send('0')
         }
             else{
-            console.log(`Food Stuff deleted ${result}`)
+            // console.log(`Food Stuff deleted ${result}`)
             res.send('1')
         }
     })
@@ -177,52 +187,13 @@ module.exports = home;
 
 /*
 
- let fieldname = req.file.fieldname;
-    let originalname = req.file.originalname;
-    let encoding = req.file.encoding;
-    let mimetype = req.file.mimetype;
-    let destination = req.file.destination;
-    let path = req.file.path;
-    let size = req.file.size;
-
-
-image: {
-    fieldname : fieldname,
-    originalname : originalname,
-    encoding : encoding,
-    mimetype : mimetype,
-    destination : destination,
-    path : path,
-    size : size
-}
-
-
-{
-  fieldname: 'image',
-  originalname: 'slackprofile.png',
-  encoding: '7bit',
-  mimetype: 'image/png',
-  destination: 'D:\\web-dev2\\foodie-go-api\\files\\',  filename: '1616432322406-slackprofile.png',
-  path: 'D:\\web-dev2\\foodie-go-api\\files\\1616432322406-slackprofile.png',
-  size: 511192
-}
-
-
- Foodstuff.find({name: "siddharth"},(err,result)=>{
-        if(err) console.log(err)
-        console.log(result)
-        // let decodedImage = new Buffer(encodedImage, 'base64').toString('binary')
-        let decodedImage=  Buffer.from(result[0].image[0].toString('binary'))
-        upload.single(decodedImage)
-        console.log(decodedImage)
-        try{
-            res.send(decodedImage)
-        }catch(e){
-            console.log(e)
-            res.send("0")
-        }
-        // let encodedImage = Buffer.from(file.toString('base64'))
-
-    })
+1[object Object],
+2 605edbdf6a328881803efdac,
+3 sid@gmail.com,
+4 veg fried  rice,
+5 102,
+6 pb road,
+7 937377228,0
+<img height='500' width='400' src={`data:image/*;base64,${each[0][0]}`} alt="imagealt" />
 
 */
