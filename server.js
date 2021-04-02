@@ -11,7 +11,7 @@ mongoose.set('useUnifiedTopology', true);
 mongoose.set('useNewUrlParser', true);
 
 
-mongoose.connect('mongodb://localhost/foodiedb')
+mongoose.connect(process.env.MONGODB_URI ||  'mongodb://localhost/foodiedb')
 .then(res=> console.log(`successuflly connected: ${res}`))
 .catch(err=>console.log(`error connecting to db : ${err}`));
 
