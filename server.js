@@ -6,13 +6,17 @@ const app= express()
 const Home = require('./routes/home')
 
 const Userinfo= require('./models/userinfos');
+const bcrypt = require('bcrypt')
+const saltRounds=10
+
+let flag=0;
 
 mongoose.set('useUnifiedTopology', true);
 mongoose.set('useNewUrlParser', true);
 
-
-mongoose.connect(process.env.MONGODB_URI ||  'mongodb://localhost/foodiedb')
-.then(res=> console.log(`successuflly connected: ${res}`))
+const mongoURL= process.env.MONGODB_URI ||  'mongodb://localhost/foodiedb'
+mongoose.connect(mongoURL)
+.then(res=> console.log(`successuflly connected: ${res} ${mongoURL}`))
 .catch(err=>console.log(`error connecting to db : ${err}`));
 
 
@@ -45,23 +49,29 @@ function deleteeFoodstuff(){
 app.post('/register',(req,res)=>{
     let finalres=0
     try{
-        Userinfo.insertMany({
-            username: req.body.username,
-            password: req.body.password
-
-        },(err)=>{
+        bcrypt.hash(req.body.password, saltRounds, function(err, hash) {
             if(err){
-                console.log(`error occurred while registering a user: ${err}`)
-                return res.json("0")//registeration failed
+                throw "unable to store password"
+            }else{
+                Userinfo.insertMany({
+                    username: req.body.username,
+                    password: hash
+
+                },(err)=>{
+                    if(err){
+                        console.log(`error occurred while registering a user: ${err}`)
+                        return res.json("0")//registeration failed
+                    }
+                    else{
+                        finalres=1;
+                        console.log(finalres);
+                        console.log("Registeration Successful"+`${finalres}`)
+                        return res.json("1")
+                    }
+                })
             }
-            else{
-                finalres=1;
-                console.log(finalres);
-                console.log("Registeration Successful"+`${finalres}`)
-                // return res.send(req.body)
-                return res.json("1")
-            }
-        })
+
+        });
     }catch(err){
         console.log(`Try error occurred while registering a user: ${err}`) ;
         return res.json("0")//registeration failed
@@ -70,17 +80,25 @@ app.post('/register',(req,res)=>{
 })
 
 app.post('/signin',(req,res)=>{
-    Userinfo.findOne({username: req.body.username, password: req.body.password },(err,result)=>{
-        if(err){
-            console.log(`Error while finding userinfo in db ${err}`)
-            res.json('0')
-        }else{
-            console.log(`${result}`)
-            if(result!==null)   res.json('1')
-            else res.json('0')
-            // res.json(`userinfo found in db `)
-        }
+    console.log('signin request ______')
+
+    Userinfo
+    .find({})
+    .then(collection=>{
+        let result = isValidUser(collection,req.body.username,req.body.password)
+        return result;
     })
+    .then(valid=>{
+        console.log(`valid:  ${valid}`)
+        if(parseInt(valid)===1){
+            res.json('1')
+        }else res.json('0')
+    })
+    .catch(err=>{
+        console.log(err)
+        res.json('0')
+    })
+
 })
 
 let foods=[
@@ -121,7 +139,6 @@ let foods=[
 
 async function findFoodsbySeller(username){
     let foodbyseller= await Foodstuff.find({username : username})
-    // console.log(foodbyseller)
     return foodbyseller;
 }
 
@@ -139,6 +156,26 @@ function InsertFoodstuff(){
     }catch(err){
         console.log(err)
     }
+}
+
+async function isValidUser(collection,username,password){
+    let index,flag=0;
+    for ( index = 0; index < collection.length; index++) {
+        flag= await checkUser(username,password,collection[index])
+        if(parseInt(flag)){
+            return flag;
+        }
+    }
+    return 0;
+}
+
+async function checkUser(username, password,user) {
+
+    let match = await bcrypt.compare(password, user.password);
+    // console.log(match)
+    if(match && user.username===username) {
+        return 1;
+    }else return 0;
 }
 
 // InsertFoodstuff();
