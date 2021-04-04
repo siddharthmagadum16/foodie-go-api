@@ -81,16 +81,21 @@ home.post('/sell/insert/food',upload.single('image'),(req,res)=>{
 
     if(insertFoodDocument(req.body,req.file,encodedImage)) res.send('1')
     else res.send('0');
-    fs.readdir(req.file.path, (err, files) => {
-        if (err) console.log(err);
-            fs.unlink(req.file.path, err => {
-                if (err) console.log(err);
+    fs.readdir('../files/'+req.file.filename, (err, files) => {
+
+        if (err) console.log(`readdir error: \n ${err}`);
+            fs.unlink('./files/'+req.file.filename, err => {
+                if (err) console.log('file unlink error\n '+err);
             })
     })
 
 })
 
-
+home.post('/sell/insert/getfilepath',upload.single('image'),(req,res)=>{
+    console.log('filepath: '+ req.file.path)
+    if(req.file.path)   res.json(req.file.path)
+    else res.status(404).json("Error fetching file path")
+})
 
 home.post('/sell/insert/food/image',upload.single('image'),(req,res)=>{
 
@@ -137,10 +142,6 @@ home.get('/getimage',(req,res)=>{
         console.log(imageinfo.image[0].data.slice(0,9))
         console.log(tmp)
         let final;
-        // let final = `<img src={data:${imageinfo.image[0].contentType};base64,${imageinfo.image[0].data}} alt="imagealt" />`
-        // res.send(final.json())
-        // res.json(final)
-        // console.log(final)
         final=[imageinfo.image[0].contentType,imageinfo.image[0].data]
         res.json(imageinfo.image[0].data)
     })

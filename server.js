@@ -15,6 +15,7 @@ mongoose.set('useUnifiedTopology', true);
 mongoose.set('useNewUrlParser', true);
 
 const mongoURL= process.env.MONGODB_URI ||  'mongodb://localhost/foodiedb'
+const mongoURL2= 'mongodb://localhost/foodiedb'
 mongoose.connect(mongoURL)
 .then(res=> console.log(`successuflly connected: ${res} ${mongoURL}`))
 .catch(err=>console.log(`error connecting to db : ${err}`));
@@ -101,40 +102,6 @@ app.post('/signin',(req,res)=>{
 
 })
 
-let foods=[
-    food1= {
-        username: 'sid',
-        name: 'pizza',
-        price: 100,
-        rating: 3.5,
-        place: 'Dwarka Nagar, Banglore',
-        contactno: 948569712
-    },
-    food2={
-        username: 'sid',
-        name: 'North Indian Biryani',
-        price: 100,
-        rating: 3.0,
-        place: 'Dwarka Nagar2, Banglore',
-        contactno: 948569712
-    },
-    food3= {
-        username: 'sid',
-        name: 'Chinese schezwan fried rice',
-        price: 100,
-        rating: 3.5,
-        place: 'Dwarka Nagar3, Banglore',
-        contactno: 948569712
-    },
-    food4={
-        username:'sid',
-        name: 'Gobi Manchuri',
-        price: 50,
-        rating: 4.5,
-        place: 'Ashok Nagar',
-        contactno: 9478219354
-    }
-]
 
 
 async function findFoodsbySeller(username){
