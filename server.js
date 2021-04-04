@@ -11,7 +11,7 @@ const saltRounds=10
 
 let flag=0;
 
-mongoose.set('useUnifiedTopology', true);
+mongoose.set('useUnifiedTopology', true);   
 mongoose.set('useNewUrlParser', true);
 
 const mongoURL= process.env.MONGODB_URI ||  'mongodb://localhost/foodiedb'
