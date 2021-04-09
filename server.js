@@ -3,149 +3,30 @@ const bodyParser= require('body-parser')
 const cors = require('cors')
 const mongoose = require('mongoose')
 const app= express()
-const Home = require('./routes/home')
 
-const Userinfo= require('./models/userinfos');
-const bcrypt = require('bcrypt')
-const saltRounds=10
 
-let flag=0;
 
-mongoose.set('useUnifiedTopology', true);   
+// setting database url according to environment
+var database_url;
+if(app.get('env')==='development'){
+    database_url='mongodb://localhost/foodiedb'
+}else{
+    database_url= process.env.MONGODB_URI
+}
+
+mongoose.set('useUnifiedTopology', true);
 mongoose.set('useNewUrlParser', true);
-
-const mongoURL= process.env.MONGODB_URI ||  'mongodb://localhost/foodiedb'
-const mongoURL2= 'mongodb://localhost/foodiedb'
-mongoose.connect(mongoURL)
-.then(res=> console.log(`successuflly connected: ${res} ${mongoURL}`))
+mongoose.connect(database_url)
+.then(res=> console.log(`successuflly connected: ${res} ${database_url}`))
 .catch(err=>console.log(`error connecting to db : ${err}`));
 
 
-
 app.use(cors())
-app.use(bodyParser.json())
 app.use(express.json())
 app.use(express.urlencoded({ extended: true })); // when data is sent in urlencoded format
 
-app.use('/home/',Home);
-
-function deleteeUserinfo(){
-    Userinfo.deleteMany({},(err,result)=>{
-        if(err) console.log(`Unable to delete ${moviename} ${err}`);
-        else console.log(` Successfully delted: ${result}`);
-    })
-}
-// deleteeUserinfo() //________________________________________________________________
-function deleteeFoodstuff(){
-    Foodstuff.deleteMany({},(err,result)=>{
-        if(err) console.log(`Unable to delete ${moviename} ${err}`);
-        else console.log(` Successfully delted: ${result}`);
-    })
-}
-// deleteeFoodstuff() //________________________________________________________________
-
-// */
-
-
-app.post('/register',(req,res)=>{
-    let finalres=0
-    try{
-        bcrypt.hash(req.body.password, saltRounds, function(err, hash) {
-            if(err){
-                throw "unable to store password"
-            }else{
-                Userinfo.insertMany({
-                    username: req.body.username,
-                    password: hash
-
-                },(err)=>{
-                    if(err){
-                        console.log(`error occurred while registering a user: ${err}`)
-                        return res.json("0")//registeration failed
-                    }
-                    else{
-                        finalres=1;
-                        console.log(finalres);
-                        console.log("Registeration Successful"+`${finalres}`)
-                        return res.json("1")
-                    }
-                })
-            }
-
-        });
-    }catch(err){
-        console.log(`Try error occurred while registering a user: ${err}`) ;
-        return res.json("0")//registeration failed
-    }
-    console.log(`finalres ${finalres}`)
-})
-
-app.post('/signin',(req,res)=>{
-    console.log('signin request ______')
-
-    Userinfo
-    .find({})
-    .then(collection=>{
-        let result = isValidUser(collection,req.body.username,req.body.password)
-        return result;
-    })
-    .then(valid=>{
-        console.log(`valid:  ${valid}`)
-        if(parseInt(valid)===1){
-            res.json('1')
-        }else res.json('0')
-    })
-    .catch(err=>{
-        console.log(err)
-        res.json('0')
-    })
-
-})
-
-
-
-async function findFoodsbySeller(username){
-    let foodbyseller= await Foodstuff.find({username : username})
-    return foodbyseller;
-}
-
-// temporary
-function InsertFoodstuff(){
-    try{
-
-        Foodstuff.insertMany({
-            username:'sid@gmail.com',
-            name: 'Veg Biryani',
-            price: '250',
-            place: 'PB road vijay colony',
-            contactno: 9478219354
-        })
-    }catch(err){
-        console.log(err)
-    }
-}
-
-async function isValidUser(collection,username,password){
-    let index,flag=0;
-    for ( index = 0; index < collection.length; index++) {
-        flag= await checkUser(username,password,collection[index])
-        if(parseInt(flag)){
-            return flag;
-        }
-    }
-    return 0;
-}
-
-async function checkUser(username, password,user) {
-
-    let match = await bcrypt.compare(password, user.password);
-    // console.log(match)
-    if(match && user.username===username) {
-        return 1;
-    }else return 0;
-}
-
-// InsertFoodstuff();
+app.use('/home/',require('./routes/home'))
+app.use('/auth',require('./routes/auth'))
 
 
 app.get('*',(req,res)=>{
@@ -158,3 +39,50 @@ app.listen(port,()=>{
     console.log("App is listening on port "+ port)
     // console.log(`Error listening port ${err}`)
 })
+
+
+
+// InsertFoodstuff();
+/*
+    async function findFoodsbySeller(username){
+        let foodbyseller= await Foodstuff.find({username : username})
+        return foodbyseller;
+    }
+    // temporary
+    function InsertFoodstuff(){
+        try{
+
+            Foodstuff.insertMany({
+                username:'sid@gmail.com',
+                name: 'Veg Biryani',
+                price: '250',
+                place: 'PB road vijay colony',
+                contactno: 9478219354
+            })
+        }catch(err){
+            console.log(err)
+        }
+    }
+
+
+function deleteeUserinfo(){
+    Userinfo.deleteMany({},(err,result)=>{
+        if(err) console.log(`Unable to delete ${moviename} ${err}`);
+        else console.log(` Successfully delted: ${result}`);
+    })
+}
+
+
+
+function deleteeFoodstuff(){
+    Foodstuff.deleteMany({},(err,result)=>{
+        if(err) console.log(`Unable to delete ${moviename} ${err}`);
+        else console.log(` Successfully delted: ${result}`);
+    })
+}
+// deleteeFoodstuff() //________________________________________________________________
+
+
+// deleteeUserinfo() //________________________________________________________________
+
+    */

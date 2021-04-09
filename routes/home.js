@@ -1,6 +1,6 @@
 const express= require('express')
-const bodyParser= require('body-parser')
-const mongoose = require('mongoose')
+// const bodyParser= require('body-parser')
+// const mongoose = require('mongoose')
 const home= require('express').Router();
 const {performance} = require('perf_hooks');
 
@@ -10,7 +10,7 @@ require('dotenv/config')
 const multer = require('multer')
 
 const Foodstuff= require('../models/foodstuffs');
-const { decode } = require('punycode');
+// const { decode } = require('punycode');
 
 
 home.use(express.json())
