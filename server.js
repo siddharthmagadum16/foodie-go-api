@@ -33,7 +33,7 @@ app.get('*',(req,res)=>{
     res.status(404).send("ERROR 404 Not Found")
 })
 
-const port= process.env.PORT || 3000
+const port= process.env.PORT || 43000
 
 app.listen(port,()=>{
     console.log("App is listening on port "+ port)
