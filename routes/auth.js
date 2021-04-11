@@ -8,8 +8,6 @@ const bcrypt = require('bcrypt')
 const saltRounds=10
 
 const nodemailer= require('nodemailer');
-const { resolve } = require('path');
-const { rejects } = require('assert');
 
 
 const transporter = nodemailer.createTransport({
@@ -17,7 +15,7 @@ const transporter = nodemailer.createTransport({
     secure: true,
     auth: {
       user: 'foodie.go963@gmail.com',
-      pass: 'foodiegowebsite'
+      pass: process.env.TRANSPORTER_PASS
     }
 });
 
@@ -42,7 +40,8 @@ auth.post('/send-code',(req,res)=>{
     let code = Math.floor(Math.random()*10000)+1000;
     let htmldata= `
         <div>
-        <h5>Thank you for registering on foodie-go</h5>
+        <h4>Thank you for registering on foodie-go</h4>
+        <img src=${'https://i.imgur.com/Cm3Wuc5.png?1'} alt='foodie-go-logo' width=200px  />
         <h4>Your verification code: ${code}</h4>
         <h5>Enter the verification code to complete registeration process</h5>
         </div>

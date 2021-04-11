@@ -8,6 +8,7 @@ const fs= require('fs')
 const Path = require('path')
 require('dotenv/config')
 const multer = require('multer')
+const nodemailer= require('nodemailer')
 
 const Foodstuff= require('../models/foodstuffs');
 // const { decode } = require('punycode');
@@ -40,7 +41,7 @@ home.get('/buy',(req,res)=>{
     .find()
     .or({})
     .then(result=>{
-        console.log(result)
+        // console.log(result)
         res.send(result)
     })
     .catch(err=> {
@@ -180,6 +181,171 @@ home.post('/sell/delete/:username/:foodid',(req,res)=>{
             res.send('1')
         }
     })
+})
+
+
+
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    secure: true,
+    auth: {
+      user: 'foodie.go963@gmail.com',
+      pass: process.env.TRANSPORTER_PASS
+    }
+});
+
+function validateEmail(email) {
+    const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(String(email).toLowerCase());
+}
+
+home.post('/buy/send-order',(req,res)=>{
+    console.log(`sending order ...`)
+    // console.log(req.body[0])
+    let orderId=Math.floor(Math.random()*1000000)+100000;
+    let userObj=req.body[0];
+    let username= req.body[1];
+    let totalprice= req.body[2];
+    let objValues= Object.values(userObj)
+    let objKeys= Object.keys(userObj)
+    let delivery_address=req.body[3]
+    let delivery_contactno=req.body[4]
+    console.log("contactno "+delivery_contactno.toString())
+    let htmldata=``
+    let foodieHtmldata=``
+    // objValues=objValues
+    htmldata+=`<tr><th>Food Name</th><th>Price</th><th>Quantity</th></tr>`
+    foodieHtmldata+=`<tr><th>Food Name</th><th>Price</th><th>Quantity</th></tr>`
+    console.log(objValues)
+    for(let index=0;index<objValues.length;index++){
+        for(let ind2=0;ind2<objValues[index].length;ind2++){
+            let element=objValues[index][ind2];
+            if(element.length==2){
+                foodieHtmldata+=`<tr><td>Producer details</td><td>${element[0]}</td><td>${element[1]}</td></tr>`
+            }else{
+                htmldata+=`<tr><td>${element[0]}</td><td>${element[1]}</td><td>${element[2]}</td></tr>`
+                foodieHtmldata+=`<tr><td>${element[0]}</td><td>${element[1]}</td><td>${element[2]}</td></tr>`
+            }
+        }
+    }
+    htmldata=`<table border="1px solid black" style="text-align: center; border-spacing: 5px">${htmldata}</table>`
+    foodieHtmldata=`<table border="1px solid black" style="text-align: center; border-spacing: 5px">${foodieHtmldata}</table>`
+
+    htmldata=`<h3>Thank you for ordering food from Foodie-go</h3><br/>
+                <img src=${'https://i.imgur.com/Cm3Wuc5.png?1'} alt='foodie-go-logo' width=200px  />
+            <h4>Food order List:</h4><br/>
+                ${htmldata}
+            <br/>
+            <h4>Order-Id : ${orderId}</h4>
+            <h4>Total Price: ₹ ${totalprice}</h4>
+            <h5>Your food will get delivered within an hour </h5>
+            <h5>Thank you for using Foodie-go services,</h5>
+            <br/>
+            <h5>Team Foodie-go</h5>
+        `
+    foodieHtmldata=`
+        Food order details:
+        <h5>Order-Id: ${orderId}</h5><br/>
+        ${foodieHtmldata}
+        <h4>Total order price: ${totalprice}</h4>
+        <br/>
+        <h4>Delivery address: ${delivery_address} </h4>
+        <h4>Delivery contact-number: ${delivery_contactno} </h4>
+        <h5>Team Foodie-go</h5>
+    `
+
+    console.log(username)
+    let mailOptions;
+    mailOptions = {
+        from: 'foodie.go963@gmail.com',
+        to: 'foodie.go963@gmail.com',
+        subject: `Foodie-go order: ${orderId}`,
+        html: foodieHtmldata,
+        context:{
+          name: 'Foodie-go'
+        }
+    };
+
+    transporter.sendMail(mailOptions, function(error, info){
+          if (error) {
+            console.log(error);
+            return res.send("0")
+        } else {
+            console.log('Email sent: ' + info.response);
+        }
+    });
+
+
+    mailOptions = {
+        from: 'foodie.go963@gmail.com',
+        to: username,
+        subject: 'Your order has been successfully sent',
+        html: htmldata,
+        context:{
+          name: 'Foodie-go'
+        }
+    };
+
+    transporter.sendMail(mailOptions, function(error, info){
+          if (error) {
+            console.log(error);
+            return res.send("0")
+        } else {
+            console.log('Email sent: ' + info.response);
+        }
+    });
+
+    for(let producer_index=0;producer_index<objKeys.length;producer_index++){
+        console.log("hey")
+        htmldata=`<tr><th>Food Name</th><th>Price</th><th>Quantity</th></tr>`
+        let producer_price=0;
+        for(let food_index=0;food_index<objValues[producer_index].length;food_index++){
+            // each food element
+            let element=objValues[producer_index][food_index]
+            if(element.length===3){
+                producer_price+=element[2]*element[1];
+                htmldata+=`<tr><td>${element[0]}</td><td>${element[1]}</td><td>${element[2]}</td></tr>`
+            }
+        }
+        htmldata=`<table border="1px solid black" style="text-align: center; border-spacing: 5px">${htmldata}</table>`
+        htmldata=`<h3>You have food order from Foodie-go</h3>
+            <img src=${'https://i.imgur.com/Cm3Wuc5.png?1'} alt='foodie-go-logo' width=200px  />
+            <h4>Order details:</h4>
+            ${htmldata}
+            <h4>Order-Id : ${orderId}</h4>
+            <h4> Total order price: ₹ ${producer_price}
+
+            <h5>Our delivery person will come shortly to pick-up the food items and pay for requested order</h5>
+            <h5>Thank you for using Foodie-go services</h5>
+            <br/>
+            <h5>Team Foodie-go</h5>
+        `
+        console.log(objKeys[producer_index])
+        mailOptions = {
+            from: 'foodie.go963@gmail.com',
+            to: objKeys[producer_index],
+            subject: 'Food order from Foodie-go',
+            html: htmldata,
+            context:{
+              name: 'Foodie-go'
+            }
+        };
+
+        transporter.sendMail(mailOptions, function(error, info){
+            if (error) {
+              console.log(error);
+              return res.send("0")
+            }else{
+              console.log('Email sent: ' + info.response);
+            }
+        });
+
+
+    }
+
+
+
+    res.send('1');
 })
 
 module.exports = home;
