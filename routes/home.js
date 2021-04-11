@@ -247,7 +247,7 @@ home.post('/buy/send-order',(req,res)=>{
         Food order details:
         <h5>Order-Id: ${orderId}</h5><br/>
         ${foodieHtmldata}
-        <h4>Total order price: ${totalprice}</h4>
+        <h4>Total order price: ₹ ${totalprice}</h4>
         <br/>
         <h4>Delivery address: ${delivery_address} </h4>
         <h4>Delivery contact-number: ${delivery_contactno} </h4>
