@@ -13,8 +13,8 @@ var database_url;
 // }else{
 //     database_url= process.env.MONGODB_URI
 // }
-database_url=process.env.MONGODB_URI
-// database_url='mongodb://localhost/foodiedb'
+// database_url=process.env.MONGODB_URI
+database_url='mongodb://localhost/foodiedb'
 
 
 mongoose.set('useUnifiedTopology', true);

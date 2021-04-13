@@ -238,7 +238,7 @@ home.post('/buy/send-order',(req,res)=>{
             <br/>
             <h4>Order-Id : ${orderId}</h4>
             <h4>Total Price: ₹ ${totalprice}</h4>
-            <h5>Your food will get delivered within an hour </h5>
+            <h5>Your food will be delivered within an hour </h5>
             <h5>Thank you for using Foodie-go services,</h5>
             <br/>
             <h5>Team Foodie-go</h5>
