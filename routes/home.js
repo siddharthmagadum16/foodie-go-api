@@ -1,6 +1,4 @@
 const express= require('express')
-// const bodyParser= require('body-parser')
-// const mongoose = require('mongoose')
 const home= require('express').Router();
 const {performance} = require('perf_hooks');
 
@@ -11,7 +9,6 @@ const multer = require('multer')
 const nodemailer= require('nodemailer')
 
 const Foodstuff= require('../models/foodstuffs');
-// const { decode } = require('punycode');
 
 
 home.use(express.json())
@@ -36,7 +33,6 @@ var upload = multer({ storage: storage });
 
 
 home.get('/buy',(req,res)=>{
-    // foods=0
     Foodstuff
     .find()
     .or({})
@@ -76,9 +72,8 @@ home.post('/sell/insert/food',upload.single('image'),(req,res)=>{
 
 
     let file =fs.readFileSync(req.file.path);
-    console.log("_________ " +req.body.username)
     let encodedImage = Buffer.from(file).toString('base64')
-    console.log(encodedImage.slice(0,9))
+    // console.log(encodedImage.slice(0,9))
 
     if(insertFoodDocument(req.body,req.file,encodedImage)) res.send('1')
     else res.send('0');
@@ -112,7 +107,7 @@ home.post('/sell/insert/food/image',upload.single('image'),(req,res)=>{
             contentType: req.file.mimetype
         }
     }
-    // fs.readFile(req.file.path,)
+
     Foodstuff.insertMany(obj,(err,result)=>{
         if(err)
             res.send("0");
@@ -136,10 +131,8 @@ home.post('/sell/insert/food/image',upload.single('image'),(req,res)=>{
 home.get('/getimage',(req,res)=>{
     let t0= performance.now()
     Foodstuff.findById("605ebb278433147b8c5d5be5",(err,img)=>{
-        // console.log(img.id)
         let tmp = img.image.contentType
         imageinfo = img
-        // console.log(imageinfo.image) // never log .image
         console.log(imageinfo.image[0].data.slice(0,9))
         console.log(tmp)
         let final;
@@ -176,13 +169,11 @@ home.post('/sell/delete/:username/:foodid',(req,res)=>{
             console.log(`err deleting foodstuff in server ${err}`)
             res.send('0')
         }
-            else{
-            // console.log(`Food Stuff deleted ${result}`)
+        else{
             res.send('1')
         }
     })
 })
-
 
 
 const transporter = nodemailer.createTransport({
@@ -193,11 +184,6 @@ const transporter = nodemailer.createTransport({
       pass: process.env.TRANSPORTER_PASS
     }
 });
-
-function validateEmail(email) {
-    const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-    return re.test(String(email).toLowerCase());
-}
 
 home.post('/buy/send-order',(req,res)=>{
     console.log(`sending order ...`)
@@ -239,7 +225,8 @@ home.post('/buy/send-order',(req,res)=>{
             <h4>Order-Id : ${orderId}</h4>
             <h4>Total Price: ₹ ${totalprice}</h4>
             <h5>Your food will be delivered within an hour </h5>
-            <h5>Thank you for using Foodie-go services,</h5>
+            <h5>Payment mode - cash on delivery </h5>
+            <h5>Thank you for using Foodie-go services</h5>
             <br/>
             <h5>Team Foodie-go</h5>
         `
@@ -254,7 +241,7 @@ home.post('/buy/send-order',(req,res)=>{
         <h5>Team Foodie-go</h5>
     `
 
-    console.log(username)
+
     let mailOptions;
     mailOptions = {
         from: 'foodie.go963@gmail.com',
@@ -275,7 +262,7 @@ home.post('/buy/send-order',(req,res)=>{
         }
     });
 
-
+    if(username==='test@email.com') username='foodie.go963@gmail.com'
     mailOptions = {
         from: 'foodie.go963@gmail.com',
         to: username,
@@ -320,10 +307,12 @@ home.post('/buy/send-order',(req,res)=>{
             <br/>
             <h5>Team Foodie-go</h5>
         `
-        console.log(objKeys[producer_index])
+
+        let toemailaddress= (objKeys[producer_index]==='test@email.com') ? 'foodie.go963@gmail.com' : objKeys[producer_index];
+
         mailOptions = {
             from: 'foodie.go963@gmail.com',
-            to: objKeys[producer_index],
+            to: toemailaddress,
             subject: 'Food order from Foodie-go',
             html: htmldata,
             context:{
@@ -339,7 +328,6 @@ home.post('/buy/send-order',(req,res)=>{
               console.log('Email sent: ' + info.response);
             }
         });
-
 
     }
 

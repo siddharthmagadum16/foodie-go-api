@@ -5,6 +5,7 @@ const Userinfo= require('../models/userinfos');
 const  userverify= require('../models/userverify')
 const bcrypt = require('bcrypt')
 const saltRounds=10
+const EmailValidator = require('email-validator')
 
 const nodemailer= require('nodemailer');
 
@@ -19,8 +20,7 @@ const transporter = nodemailer.createTransport({
 });
 
 function validateEmail(email) {
-    const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-    return re.test(String(email).toLowerCase());
+    return EmailValidator.validate(email);
 }
 
 auth.use('/send-code',(req,res,next)=>{
@@ -33,7 +33,6 @@ auth.use('/send-code',(req,res,next)=>{
     }
 })
 
-// let flag=0;
 auth.post('/send-code',(req,res)=>{
 
     let code = Math.floor(Math.random()*10000)+1000;
@@ -70,9 +69,7 @@ auth.post('/send-code',(req,res)=>{
             // send a mail with verification code.
             transporter.sendMail(mailOptions, function(error, info){
                 if (error) {
-                    // console.log(error);
-                    throw error
-                    // throw "Unable to send email"
+                    throw error                    // throw "Unable to send email"
                 }else{
                     console.log('Email sent: ' + info.response);
 
@@ -91,8 +88,6 @@ auth.post('/send-code',(req,res)=>{
                                 code    : codehash
                             },(err)=>{
                                 if(err)    throw `error occurred while registering a user:${err}`
-                                    // console.log(`error occurred while registering a user: ${err}`)
-                                    // return res.json("0")//registeration failed
                                 else{
                                     console.log("email has been sent successfully")
                                     return res.json("1") //SUCCESS
@@ -116,19 +111,15 @@ auth.post('/send-code',(req,res)=>{
 })
 
 auth.post('/register',(req,res)=>{
-    console.log("registering .....")
     userverify
     .find({username: req.body.username})
     .then(user=> {
         if(user.length===0){
-            throw `User didn not verify email before while registering`
+            throw `User did not verify email before while registering`
         }
-        console.log(user[0].code);
         return bcrypt.compare( req.body.code,user[0].code)
     })
     .then(match=>{
-        console.log(match)
-        // let match =  bcrypt.compare(user[0].code, req.body.code)
         if(match){
             bcrypt.hash(req.body.password, saltRounds, function(err, hash) {
                 if(err){
@@ -164,50 +155,15 @@ auth.post('/register',(req,res)=>{
     })
 })
 
-auth.post('/register/depreciated',(req,res)=>{
-    let finalres=0
-    try{
-        bcrypt.hash(req.body.password, saltRounds, function(err, hash) {
-            if(err){
-                throw "unable to store password"
-            }else{
-                Userinfo.insertMany({
-                    username: req.body.username,
-                    password: hash
-
-                },(err)=>{
-                    if(err){
-                        console.log(`error occurred while registering a user: ${err}`)
-                        return res.json("0")//registeration failed
-                    }
-                    else{
-                        finalres=1;
-                        console.log(finalres);
-                        console.log("Registeration Successful"+`${finalres}`)
-                        return res.json("1")
-                    }
-                })
-            }
-
-        });
-    }catch(err){
-        console.log(`Try error occurred while registering a user: ${err}`) ;
-        return res.json("0")//registeration failed
-    }
-    console.log(`finalres ${finalres}`)
-})
 
 auth.post('/signin',(req,res)=>{
-    console.log('signin request ______')
 
     Userinfo
     .find({})
     .then(collection=>{
-        let result = isValidUser(collection,req.body.username,req.body.password)
-        return result;
+        return isValidUser(collection,req.body.username,req.body.password)
     })
     .then(valid=>{
-        console.log(`valid:  ${valid}`)
         if(parseInt(valid)===1){
             res.json('1')
         }else res.json('0')
@@ -239,7 +195,6 @@ async function isValidUser(collection,username,password){
 async function checkUser(username, password,user) {
 
     let match = await bcrypt.compare(password, user.password);
-    // console.log(match)
     if(match && user.username===username) {
         return 1;
     }else return 0;
