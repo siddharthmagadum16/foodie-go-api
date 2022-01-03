@@ -6,15 +6,13 @@ const app= express()
 
 
 
-// setting database url according to environment
 var database_url;
-// if(app.get('env')==='development'){
-//     database_url='mongodb://localhost/foodiedb'
-// }else{
-//     database_url= process.env.MONGODB_URI
-// }
-database_url=process.env.MONGODB_URI
-// database_url='mongodb://localhost/foodiedb'
+
+if(process.env.ENV === 'PRODUCTION'){
+    database_url = process.env.MONGODB_URI;
+}else {
+    database_url = 'mongodb://localhost/foodiedb';
+}
 
 
 mongoose.set('useUnifiedTopology', true);
